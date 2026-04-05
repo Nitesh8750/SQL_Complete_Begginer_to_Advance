@@ -1,0 +1,214 @@
+$---------------------------------------------------------------------------------------------------------------------------------------------$
+Interviewer: What are the different types of SQL statements?
+
+Me: DDL (Data Definition Language),DML (Data Manipulation Language),DCL (Data Control Language),TCL (Transaction Control Language).
+$---------------------------------------------------------------------------------------------------------------------------------------------$
+Interviewer: What is a primary key and foreign key?
+
+Me: primary: uniquely identifies each record in a table and cannot contain NULL.
+    foreign: a column that links one table to another. It connects related data.
+$---------------------------------------------------------------------------------------------------------------------------------------------$
+Interviewer: What is the difference between WHERE and HAVING?
+
+Me: WHERE  : filters rows before aggregation.
+    HAVING : filters groups after aggregation.
+
+SUBQUERY: Is a query nested inside another SQL query, typically used to retrieve data that will be used in the main query’s conditions or results.
+
+$---------------------------------------------------------------------------------------------------------------------------------------------$
+Interviewer: What is the difference between delete, truncate and drop?
+
+Me: delete  : removes specific rows based on a condition using where clause.
+    truncate: removes all rows from table.
+    drop    : Delete entire table.
+$---------------------------------------------------------------------------------------------------------------------------------------------$
+Interviewer: What is a join? Name its types?
+JOIN: JOIN SQL me use hota hai do ya zyada tables ko combine karne ke liye based on a common column.
+Me: INNER JOIN : returns only Matching rows from both tables.
+    LEFT JOIN  : returns all rows from left table and Matching rows from right tables.
+    RIGHT JOIN : returns all rows from right table and Matching rows from left tables.
+    FULL JOIN  : returns all rows from both tables.
+    CROSS JOIN : all possible combinations
+    SELF JOIN  : Joins a table with itself
+    UNION      : Combines and removes duplicates
+    UNION ALL  : Combines and keep all duplicates
+$---------------------------------------------------------------------------------------------------------------------------------------------$
+# Window Functions:Window Functions SQL me use hote hain calculations karne ke liye across a set of rows (window) without collapsing rows like GROUP BY 
+
+- ROW NUMBER: Gives unique number for each row (no duplicates)
+- RANK: Gives rank with gaps if duplicates exist
+- DENSE RANK: Gives rank without gaps 
+- LAG: Value from previous row
+- LEAD: Value from next row
+
+$---------------------------------------------------------------------------------------------------------------------------------------------$
+
+# What is the difference between a Trigger and a Stored Procedure?
+- Trigger executes automatically when an event (INSERT, UPDATE, DELETE) occurs.
+- Procedure is executed manually using CALL or EXEC.
+
+# When would you use a Function instead of a Procedure?
+- Use a Function when you need a single value or a table result inside a query.
+- Use a Procedure when you need to perform complex logic, multiple operations, or transactions.
+
+# How do you find the unique values of a column A from a table ?
+- select distinct A from table;
+
+# How do you find duplicate rows in a table?
+- select col1,col2, count(*) from table group by col1, col2 having count(*)>1;
+
+# How do you get the second highest salary?
+- select max(salary) from table where salary < (select max(salary) from table);
+
+
+SQL Hard question
+
+🔹 1. SQL Basics (Hard Level)
+
+Find the second highest salary without using LIMIT, TOP, or window functions.
+== select max(salary) from table where salary < (select max(salary) from table);
+
+Write a query to find duplicate rows in a table with multiple columns.
+== select col1,col2,col3, count(*) from table group by col1,col2,col3 having count(*) > 1;
+
+Delete duplicate records but keep only one record (no temp table).
+== Delete t1 from table t1 join table t2 on t1.col2 = t2.col2 and t1.col1 > t2.col1
+
+Find records where a column contains only numeric values (ignore alphabets).
+== select * from table where col1 regexp '^[0-9]+$';
+
+Swap values of two columns without using a third column.
+== update table set col1 = col2, col2 = col1;
+
+🔹 2. Advanced Filtering (Hard Level)
+
+Find employees whose salary is higher than their department average.
+== select * from table t where salary > (select avg(salary) from table dept = t.dept);
+
+Retrieve records where date is in last 7 working days (exclude weekends).
+== select * from table where date >= curdate() - interval 10 day and dayofweek(date) not in (1,7);
+
+Find customers who placed orders in every month of a year.
+== select cust from table group by cust having count(date_formate(date, '%Y-%m')) = 12
+
+Get records where a column contains at least 3 vowels.
+== select * from table where regxp col1 '([aeiou].*){3,}';
+
+Find users who logged in 3 consecutive days.
+== select distinct col1 from (select col1,date, lag(col2, 1)over(partition by date order by col2) as prev1,lag(col2, 2)over(partition by date order by col2) as prev2 from table)t where datediff(date, prev1) = 1 and datediff(prev1, prev2) = 1;
+
+
+🔹 3. JOINS (Hard Level)
+
+Find employees who do not have a manager (self join case).
+select t1.emp from table t1 join table t2 on t2.emp_id = t1.manager_id where t2.emp_id is null;
+
+Retrieve common records between two tables without using INTERSECT.
+select * from table t1 inner join table t2 on t1.col1 = t2.col1;
+
+Find employees who earn more than their manager.
+select t1.emp from table t1 join table t2 on t2.emp_id = t1.manager_id where t1.salary > t2.salary;
+
+Get the second highest salary per department using joins only.
+with max as (select dept,max(salary) as max_salary from table group by dept)
+select t1.dept, max(t1.salary) from table t1 join max t2 on t1.dept = t2.dept where t1.salary < t2.max_salary group by t1.dept
+
+Find missing records between two tables (anti-join problem).
+select * from table1 t1 left join table t2 on t1.col1 = t2.col1 where t2.col1 is null;
+
+🔹 5. Subqueries (Hard Level)
+
+Find employees earning more than average of their department using subquery.
+select emp, dept, salary from table t where salary > (select avg(salary) from table where dept = t.dept);
+
+Get customers who never placed an order.
+select * from table t where not exists(select 1 from orders o where o.cust = c.cust);
+
+Find the Nth highest salary using subquery.
+select salary from (select distinct salary from table order by salary desc limit N)t order by salary asc limit 1
+
+Retrieve employees who earn top salary in their department.
+select emp, dept, salary from table t where salary = (select max(salary) from table where dept = t.dept);
+
+Find products that were never sold.
+select * from table p where not exist(select 1 from sale s where s.product = p.product)
+
+
+SECTION 1: Subqueries (Most Important)
+
+Find employees earning more than average salary of their department.
+Select emp, dept, salary from table t where salary > (select avg(salary)as avg_salary from table where dept= t.dept);
+
+Find employees whose salary is greater than overall average but less than department max.
+SELECT emp, dept, salary FROM table t
+WHERE salary > (SELECT AVG(salary) FROM table)
+AND salary < (SELECT MAX(salary) FROM table WHERE dept = t.dept);
+
+Get employees who work in departments where average salary > 50,000.
+Select emp from table t where dept in (Select dept from table group by dept having avg(salary) > 50000);
+
+Find employees who don’t belong to the department with highest average salary.
+SELECT * FROM table WHERE dept NOT IN (SELECT dept FROM (SELECT dept FROM table GROUP BY dept ORDER BY AVG(salary) DESC LIMIT 1) t);
+
+Find employees whose salary is equal to second highest salary in their department.
+select emp, dept,salary from table t where salary = (Select salary from table where dept  =  t.dept order by salary desc limit 1 offset 1)
+
+🔥 SECTION 2: Joins (Real-world Problems)
+Find customers who never placed an order.
+Select t1.cust from table1 t1 left join table2 t2 on t1.col1 = t2.col1 where t2.order is null;
+
+Find customers who placed orders but never made a payment.
+select t1.cust from table1 t1 left join table2 t2 on t1.col1 = t2.col2  where t2.order is null;
+
+Find employees who earn more than their manager.
+Select t1.emp from table t1 join table t2 on t2.emp = t1.manager where t1.salary > t2.salary;
+
+Find departments with no employees.
+select t1.dept from table1 t1 left join table2 t2 on t1.col1 = t2.col1 where t2.emp is null 
+
+Find products that were ordered but never shipped.
+SELECT o.product_id FROM orders o LEFT JOIN shipments s ON o.order_id = s.order_id WHERE s.order_id IS NULL;
+
+🔥 SECTION 3: Aggregation & GROUP BY (Logic Building)
+Find customers who made more than 3 orders in a single day.
+SELECT cust, date FROM table GROUP BY cust, date HAVING COUNT(*) > 3;
+
+Find departments where total salary > average total salary of all departments.
+with summ as (select dept_name,sum(salary) as tot from employees group by dept_name)
+select dept_name from summ t where tot > (select avg(tot) from employees);
+
+Find products whose total sales > average sales of all products.
+with summ as (select products ,sum(sales ) as tot from employees group by products )
+select dept_name from summ t where tot > (select avg(tot) from employees);
+
+Find employees who have same salary as at least one other employee.
+select * from table where salary in (select salary from table group by salary having count(*) > 1);
+Find customers who placed orders in at least 3 different months.
+select cust from table group by cust having count(distinct date_fomate(date, '%Y-%M')) >= 3;
+
+🔥 SECTION 4: Advanced / Real-world Logic
+
+Find users who logged in for 3 consecutive days.
+Select distinct user_id from (Select user_id, date, lag(date,1)over(partition by user order by date) as prev1, lag(date,2)over(partition by user_id order by date) as prev2)t Where (date-prev1=1) and (prev2-prev1=1);
+
+Find employees whose salary is increasing compared to previous employee.
+Select emp, salary, prev1 from (Select emp, salary, lag(salary)over(order by emp)as prev1 from table)t where salary>prev1;
+
+Find missing IDs in a sequence (Gap problem).
+select emp from (select emp, lead(emp)over(order by emp) as next_emp from table)t where next_emp - emp > 1 
+
+Find customers who placed orders in every month of a given year.
+select cust from table group by cust having count(distinct date_formate(date, '%Y-%m')) = 12 
+
+Find top 2 highest salaries per department without using window functions.
+SELECT * FROM table t1 WHERE 2 > (SELECT COUNT(DISTINCT salary) FROM table t2 WHERE t2.dept = t1.dept AND t2.salary > t1.salary);
+
+
+👉 Find users whose total transaction amount is increasing day by day
+with tot as (
+select user_id,date(txn_date) as Days, sum(txn_amount) as amount from transactions group by user_id,date(txn_date))
+select distinct user_id from (select user_id,Days, amount, lag(amount)over(partition by user_id order by Days) as prev_amount from tot)t
+group by user_id having count(*) = count(case when prev_amount is null and amount > prev_amount then 1 end)
+
+
+
